@@ -1,8 +1,12 @@
 const transactionService = require('../Services/transactionService');
 const {User} = require("../Models/userModel");
 
+const types = ["income", "outgo"];
+
 async function getAllTransactions(req, res) {
-    const transactions = await transactionService.getAll();
+    const user = req.user;
+
+    const transactions = await transactionService.getAll(user.id);
 
     if(transactions.length > 0) {
         res.status(200).send({
@@ -21,16 +25,24 @@ async function getAllTransactions(req, res) {
 
 async function getTransaction(req, res) {
     const id = req.params.id;
+    const user = req.user;
 
     try {
-        const transaction = await transactionService.getById(id);
+        const transaction = await transactionService.getById(user.id, id);
         if(transaction){
-            res.status(200).send({
-                success: true,
-                data: {
-                    transaction: transaction
-                }
-            });
+            if(transaction.user_id === user.id){
+                res.status(200).send({
+                    success: true,
+                    data: {
+                        transaction: transaction
+                    }
+                });
+            } else {
+                return res.status(403).send({
+                    auth: false,
+                    message: "Unauthorized."
+                });
+            }
         } else {
             return res.status(404).send({
                 success: false,
@@ -45,9 +57,11 @@ async function getTransaction(req, res) {
 }
 
 async function addTransaction(req, res) {
-    const {title, type, date, sender, receiver, value, comment, user_id} = req.body;
+    const { title, type, date, sender, receiver, value, comment } = req.body;
 
-    if(type !== "income" && type !== "expense") {
+    const user = req.user;
+
+    if(types.indexOf(type) === -1) {
         return res.status(409).send({success: false, message: "'type' is not valid."})
     }
 
@@ -59,8 +73,8 @@ async function addTransaction(req, res) {
             sender: sender,
             receiver: receiver,
             value: value,
-            comment: comment ? comment : null,
-            user_id: user_id ? user_id : 1
+            comment: comment || null,
+            user_id: user.id
         }
         const transaction = await transactionService.add(data);
 

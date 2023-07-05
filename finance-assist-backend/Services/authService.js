@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const db = require('../Models');
 const Users = db.users;
 const dotenv =  require('dotenv');
+
 const authenticate = params => {
     return Users.findOne({
         where: {

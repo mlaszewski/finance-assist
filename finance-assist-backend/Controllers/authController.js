@@ -17,9 +17,15 @@ function login(req, res){
             });
         })
         .catch(err => {
-            res.status(409).send({
+            if (err.type === 'custom'){
+                return res.send({
+                    success: false,
+                    message: err.message
+                });
+            }
+            return res.send({
                 success: false,
-                message: err.message
+                message: 'Authentication failed. Unexpected Error.'
             });
         })
 }

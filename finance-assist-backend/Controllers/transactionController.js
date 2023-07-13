@@ -1,29 +1,62 @@
 const transactionService = require('../Services/transactionService');
-const {User} = require("../Models/userModel");
 
 const types = ["income", "outgo"];
 
-async function getAllTransactions(req, res) {
-    const user = req.user;
+const getMonday = (d) => {
+    const date = new Date(d);
+    const day = date.getDay();
 
-    const transactions = await transactionService.getAll(user.id);
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
 
-    if(transactions.length > 0) {
-        res.status(200).send({
-            success: true,
-            data: {
-                transactions: transactions
-            }
-        });
-    } else {
-        return res.status(404).send({
-            success: false,
-            message: "No transaction found."
-        });
-    }
+    return new Date(date.setDate(diff)).toISOString();
+}
+const getSunday = (d) => {
+    const date = new Date(getMonday(d));
+    const diff = date.getDate() + 6;
+
+    return new Date(date.setDate(diff)).toISOString();
 }
 
-async function getTransaction(req, res) {
+exports.getAllTransactions = async (req, res) => {
+    const user = req.user;
+    const { size, page, orderBy, orderWay } = req.query;
+    const limit = size ? +size : 5;
+    const offset = page ? page * limit : 0;
+    const order = [orderBy ? orderBy : 'date', orderWay ? orderWay : 'desc'];
+
+    try {
+        const data = await transactionService.getPagination(user.id, limit, offset, order);
+
+        const { count: totalItems, rows: transactions } = data;
+
+        if(transactions.length > 0) {
+            res.status(200).send({
+                success: true,
+                data: {
+                    totalItems: totalItems,
+                    transactions: transactions,
+                    totalPages: Math.ceil(totalItems / limit),
+                    currentPage: page ? +page : 0,
+                    orderBy: order[0],
+                    orderWay: order[1]
+                }
+            });
+        } else {
+            return res.status(404).send({
+                success: false,
+                message: "No transaction found."
+            });
+        }
+    } catch (error) {
+        return res.status(500).send({
+            success: false,
+            message: error.message || "Some error occurred while retrieving data."
+        });
+    }
+
+}
+
+exports.getTransaction = async (req, res) => {
     const id = req.params.id;
     const user = req.user;
 
@@ -56,7 +89,85 @@ async function getTransaction(req, res) {
 
 }
 
-async function addTransaction(req, res) {
+const fetchSummary = async (res, user_id, timestamp) => {
+    const transactions = await transactionService.getSummary(user_id, timestamp);
+
+    if(transactions.length > 0) {
+        res.status(200).send({
+            success: true,
+            data: {
+                totalItems: transactions.length,
+                transactions: transactions,
+            }
+        });
+    } else {
+        return res.status(404).send({
+            success: false,
+            message: "No transaction found."
+        });
+    }
+
+}
+
+exports.getWeekSummary = async (req, res) => {
+    const now = new Date();
+    const user = req.user;
+
+    const timestamp = {
+        from: getMonday( now ),
+        to: getSunday( now )
+    };
+
+    try {
+        await fetchSummary(res, user.id, timestamp);
+    } catch (error) {
+        return res.status(500).send({
+            success: false,
+            message: error.message || "Some error occurred while retrieving data."
+        });
+    }
+}
+exports.getMonthSummary = async (req, res) => {
+    const now = new Date();
+    const user = req.user;
+
+    const timestamp = {
+        from: now.setDate(1),
+        to: new Date( now.getFullYear(), now.getMonth()+1, 0, 1 )
+    };
+
+    try {
+        await fetchSummary(res, user.id, timestamp);
+    } catch (error) {
+        return res.status(500).send({
+            success: false,
+            message: error.message || "Some error occurred while retrieving data."
+        });
+    }
+}
+
+exports.getYearSummary = async (req, res) => {
+    const now = new Date();
+    const user = req.user;
+
+    const timestamp = {
+        from: new Date(now.getFullYear(), 0, 1, 1),
+        to: new Date(now.getFullYear() + 1, 0, 0, 1)
+    };
+
+    try {
+        await fetchSummary(res, user.id, timestamp);
+    } catch (error) {
+        return res.status(500).send({
+            success: false,
+            message: error.message || "Some error occurred while retrieving data."
+        });
+    }
+}
+
+
+
+exports.addTransaction = async (req, res) => {
     const { title, type, date, sender, receiver, value, comment } = req.body;
 
     const user = req.user;
@@ -87,10 +198,4 @@ async function addTransaction(req, res) {
         console.log(error);
         return res.status(500).send("Something went wrong...");
     }
-}
-
-module.exports = {
-    getAllTransactions,
-    getTransaction,
-    addTransaction
 }

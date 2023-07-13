@@ -2,9 +2,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../Models');
 const Users = db.users;
-const dotenv =  require('dotenv');
 
-const authenticate = params => {
+exports.authenticate = params => {
     return Users.findOne({
         where: {
             email: params.email
@@ -25,8 +24,4 @@ const authenticate = params => {
         });
         return {user: user, token: token};
     });
-}
-
-module.exports = {
-    authenticate
 }

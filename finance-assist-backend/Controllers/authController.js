@@ -1,5 +1,3 @@
-const dotenv = require('dotenv');
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 const authService = require('../Services/authService');
@@ -18,12 +16,12 @@ function login(req, res){
         })
         .catch(err => {
             if (err.type === 'custom'){
-                return res.send({
+                return res.status(401).send({
                     success: false,
                     message: err.message
                 });
             }
-            return res.send({
+            return res.status(401).send({
                 success: false,
                 message: 'Authentication failed. Unexpected Error.'
             });
@@ -47,7 +45,7 @@ async function register(req, res){
             if(user){
                 res.status(201).send({success: true});
             } else {
-                return res.status(409).send("Data is not correct");
+                return res.status(400).send("Data is not correct");
             }
         }
     } catch (error) {

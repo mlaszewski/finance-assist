@@ -6,10 +6,16 @@ const userService = require('../Services/userService');
 function login(req, res){
     return authService.authenticate(req.body)
         .then( data => {
+            const { id, userName: name, email } = data.user;
+
             res.status(201).send({
                 success: true,
                 data: {
-                    user: data.user,
+                    user: {
+                        id: id,
+                        name: name,
+                        email: email
+                    },
                     token: data.token
                 }
             });
@@ -30,7 +36,9 @@ function login(req, res){
 
 async function register(req, res){
     try{
-        if(userService.getUserByEmail(req.body.email).exists) {
+        console.log("---------------REGISTERING------------")
+
+        if(await userService.getUserByEmail(req.body.email)) {
             return res.status(409).send({
                 success: false,
                 message: 'Registration failed. User with this email already registered.'
@@ -50,6 +58,10 @@ async function register(req, res){
         }
     } catch (error) {
         console.log(error);
+        return res.status(401).send({
+            success: false,
+            message: 'Authentication failed. Unexpected Error.'
+        });
     }
 }
 

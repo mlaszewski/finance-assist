@@ -1,10 +1,20 @@
-import './App.css';
+import {Login} from "./components/Login";
+import {ThemeProvider} from "@mui/material";
+import theme from "./theme";
+import {BrowserRouter, Route, Routes} from "react-router-dom";
+import {Dashboard} from "./components/Dashboard";
 
 function App() {
   return (
-    <div className="App">
-
-    </div>
+    <ThemeProvider theme={theme}>
+        <BrowserRouter>
+            <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/login" element={<Login />} />
+            </Routes>
+        </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

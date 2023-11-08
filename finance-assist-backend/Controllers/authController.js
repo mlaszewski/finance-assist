@@ -21,27 +21,19 @@ function login(req, res){
             });
         })
         .catch(err => {
-            if (err.type === 'custom'){
-                return res.status(401).send({
-                    success: false,
-                    message: err.message
-                });
-            }
             return res.status(401).send({
                 success: false,
-                message: 'Authentication failed. Unexpected Error.'
+                message: err.message || 'Unexpected Error'
             });
         })
 }
 
 async function register(req, res){
     try{
-        console.log("---------------REGISTERING------------")
-
         if(await userService.getUserByEmail(req.body.email)) {
             return res.status(409).send({
                 success: false,
-                message: 'Registration failed. User with this email already registered.'
+                message: 'User with this email already registered'
             });
         } else {
             const data = {
@@ -57,10 +49,9 @@ async function register(req, res){
             }
         }
     } catch (error) {
-        console.log(error);
         return res.status(401).send({
             success: false,
-            message: 'Authentication failed. Unexpected Error.'
+            message: 'Unexpected Error'
         });
     }
 }

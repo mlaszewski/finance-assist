@@ -11,9 +11,9 @@ exports.authenticate = params => {
         raw: true
     }).then(user => {
         if (!user)
-            throw new Error('Authentication failed. User not found.');
+            throw new Error('User not found');
         if (!bcrypt.compareSync(params.password || '', user.password))
-            throw new Error('Authentication failed. Wrong password.');
+            throw new Error('Wrong password');
         const payload = {
             email: user.email,
             id: user.id,

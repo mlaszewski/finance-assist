@@ -1,4 +1,12 @@
-import {Box, Button, CardActions, Container, Grid, TextField} from "@mui/material";
+import {
+    Alert,
+    Box,
+    Button,
+    CardActions,
+    Grid,
+    LinearProgress,
+    TextField
+} from "@mui/material";
 import {Formik, Field, Form, ErrorMessage, useFormik} from "formik";
 import * as Yup from "yup";
 import AuthService from "../../services/auth.service";
@@ -28,8 +36,6 @@ const SignIn = ({setIsRegisterOn}: Props) => {
 
     const handleLogin = (formValues: { email: string, password: string }) => {
         const {email, password} = formValues;
-
-        setMessage("")
         setLoading(true)
 
         AuthService.login(email, password).then(
@@ -37,13 +43,11 @@ const SignIn = ({setIsRegisterOn}: Props) => {
                 navigate("/dashboard")
             },
             error => {
-                const resMessage =
-                    (error.response &&
-                    error.response.data &&
-                    error.response.data.message) || error.message || error.toString();
+                console.log(error);
+                const resMessage = error.response.data.message;
 
-                setLoading(false)
-                setMessage(resMessage)
+                setLoading(false);
+                setMessage(resMessage);
             }
         );
     }
@@ -61,6 +65,11 @@ const SignIn = ({setIsRegisterOn}: Props) => {
                 onSubmit={formik.handleSubmit}
             >
                 <Grid container spacing={1} >
+                    {message && (
+                        <Grid item xs={12}>
+                            <Alert severity="error">{message}</Alert>
+                        </Grid>
+                    )}
                     <Grid item xs={12} md={6}>
                         <TextField
                             fullWidth
@@ -91,11 +100,11 @@ const SignIn = ({setIsRegisterOn}: Props) => {
                     <Grid item xs={12}>
                         <CardActions>
                             <Button variant="contained" type="submit" disabled={loading}>
-                                {loading && <span>[Loading]</span>}
                                 <span>Sign In</span>
                             </Button>
                             <Button variant="text" onClick={() => setIsRegisterOn(true)}>Sign Up</Button>
                         </CardActions>
+                        {loading && <LinearProgress />}
                     </Grid>
                 </Grid>
             </Box>

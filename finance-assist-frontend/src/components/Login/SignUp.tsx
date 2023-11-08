@@ -1,9 +1,17 @@
-import {Alert, Box, Button, CardActions, Container, Grid, TextField} from "@mui/material";
-import {Formik, Field, Form, ErrorMessage, useFormik} from "formik";
+import {
+    Alert,
+    Box,
+    Button,
+    CardActions,
+    Grid,
+    LinearProgress,
+    TextField
+} from "@mui/material";
+import {useFormik} from "formik";
 import * as Yup from "yup";
 import AuthService from "../../services/auth.service";
-import {useEffect, useState} from "react";
-import {Navigate, NavigateFunction, redirect, useNavigate} from "react-router-dom";
+import {useState} from "react";
+import {NavigateFunction, useNavigate} from "react-router-dom";
 
 type Props = {
     setIsRegisterOn: (value: boolean) => void;
@@ -45,10 +53,8 @@ const SignUp = ({setIsRegisterOn}: Props) => {
                 //window.location.reload();
             },
             error => {
-                const resMessage =
-                    (error.response &&
-                        error.response.data &&
-                        error.response.data.message) || error.message || error.toString();
+
+                const resMessage = error.response.data.message
 
                 setLoading(false)
                 setMessage(resMessage)
@@ -65,19 +71,28 @@ const SignUp = ({setIsRegisterOn}: Props) => {
 
     return (
         <>
-            {successful && (
-                <>
-                    <Alert severity="success">You have been registered successfully!</Alert>
-                    <Button variant="contained" onClick={() => setIsRegisterOn(false)}>Sign In</Button>
-                </>
-            )}
-            {!successful && (
-                <Box
-                    component="form"
-                    onSubmit={formik.handleSubmit}
-                >
+            <Box
+                component="form"
+                onSubmit={formik.handleSubmit}
+            >
+                {successful && (
                     <Grid container spacing={1}>
-                        <Grid item sm={12} md={6}>
+                        <Grid item xs={12}>
+                            <Alert severity="success">You have been registered successfully!</Alert>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Button variant="contained" onClick={() => setIsRegisterOn(false)}>Sign In</Button>
+                        </Grid>
+                    </Grid>
+                )}
+                {!successful && (
+                    <Grid container spacing={1}>
+                        {message && (
+                            <Grid item xs={12}>
+                                <Alert severity="error">{message}</Alert>
+                            </Grid>
+                        )}
+                        <Grid item xs={12} md={6}>
                             <TextField
                                 fullWidth
                                 id="email"
@@ -90,7 +105,7 @@ const SignUp = ({setIsRegisterOn}: Props) => {
                                 helperText={formik.touched.email && formik.errors.email}
                             />
                         </Grid>
-                        <Grid item sm={12} md={6}>
+                        <Grid item xs={12} md={6}>
                             <TextField
                                 fullWidth
                                 id="name"
@@ -103,7 +118,7 @@ const SignUp = ({setIsRegisterOn}: Props) => {
                                 helperText={formik.touched.name && formik.errors.name}
                             />
                         </Grid>
-                        <Grid item sm={12} md={6}>
+                        <Grid item xs={12} md={6}>
                             <TextField
                                 fullWidth
                                 id="password"
@@ -117,7 +132,7 @@ const SignUp = ({setIsRegisterOn}: Props) => {
                                 helperText={formik.touched.password && formik.errors.password}
                             />
                         </Grid>
-                        <Grid item sm={12} md={6}>
+                        <Grid item xs={12} md={6}>
                             <TextField
                                 fullWidth
                                 id="confirmPassword"
@@ -131,19 +146,19 @@ const SignUp = ({setIsRegisterOn}: Props) => {
                                 helperText={formik.touched.confirmPassword && formik.errors.confirmPassword}
                             />
                         </Grid>
-                        <Grid item sm={12}>
+                        <Grid item xs={12}>
                             <CardActions>
                                 <Button variant="contained" type="submit" disabled={loading}>
-                                    {loading && <span>[Loading]</span>}
                                     <span>Sign Up</span>
                                 </Button>
                                 <Button variant="text" onClick={() => setIsRegisterOn(false)}>Already
                                     registered?</Button>
                             </CardActions>
+                            {loading && <LinearProgress/>}
                         </Grid>
                     </Grid>
-                </Box>
-            )}
+                )}
+            </Box>
         </>
     )
 }
